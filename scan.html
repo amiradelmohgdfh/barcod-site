@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>اسکن بارکد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<h3>اسکن بارکد</h3>
+
+<div id="reader" style="width:300px"></div>
+
+<p>کد اسکن شده:</p>
+<input type="text" id="result" readonly>
+
+<script>
+    const scanner = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(cameras => {
+        if (cameras.length > 0) {
+            scanner.start(
+                cameras[0].id,
+                { fps: 10, qrbox: 250 },
+                text => {
+                    document.getElementById("result").value = text;
+                    scanner.stop();
+                }
+            );
+        }
+    });
+</script>
+
+</body>
+</html>
