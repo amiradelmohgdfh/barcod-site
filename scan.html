@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>اسکن بارکد</title>
-
-    <!-- کتابخانه اسکن بارکد -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
-
     <style>
         body {
             font-family: sans-serif;
@@ -25,18 +22,19 @@
             max-width: 400px;
             margin: 20px auto;
         }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
     </style>
 </head>
-
 <body>
-
     <h2>اسکن بارکد</h2>
     <p>برای اسکن، دوربین را روی بارکد بگیرید</p>
-
     <div id="reader"></div>
-
     <h3>لیست بارکدهای اسکن‌شده</h3>
     <ul id="barcodeList"></ul>
+    <button onclick="clearBarcodes()">پاک کردن لیست</button>
 
     <script>
         let scannedBarcodes = JSON.parse(localStorage.getItem("barcodes")) || [];
@@ -52,20 +50,36 @@
         }
 
         function onScanSuccess(decodedText) {
-            scannedBarcodes.push(decodedText);
-            localStorage.setItem("barcodes", JSON.stringify(scannedBarcodes));
+            if (!scannedBarcodes.includes(decodedText)) {
+                scannedBarcodes.push(decodedText);
+                localStorage.setItem("barcodes", JSON.stringify(scannedBarcodes));
+                showBarcodes();
+            }
+            // آماده اسکن بعدی
+            html5QrcodeScanner.clear().then(() => {
+                startScanner();
+            }).catch(err => console.error(err));
+        }
+
+        function startScanner() {
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                onScanSuccess
+            ).catch(err => console.error("دوربین فعال نشد:", err));
+        }
+
+        function clearBarcodes() {
+            scannedBarcodes = [];
+            localStorage.removeItem("barcodes");
             showBarcodes();
         }
 
         const html5QrcodeScanner = new Html5Qrcode("reader");
-        html5QrcodeScanner.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
-            onScanSuccess
-        );
-
-        window.onload = showBarcodes;
+        window.onload = () => {
+            showBarcodes();
+            startScanner();
+        };
     </script>
-
 </body>
 </html>
