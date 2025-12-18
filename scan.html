@@ -9,32 +9,38 @@
 
   <h2>اسکن بارکد</h2>
 
-  <button onclick="startScan()" style="font-size:18px;padding:10px 20px;">
-    شروع اسکن
-  </button>
+  <p>برای اسکن، عکس بگیرید یا تصویر بارکد را انتخاب کنید</p>
 
-  <div id="reader" style="width:300px;margin:20px auto;"></div>
-  <p id="result"></p>
+  <input
+    type="file"
+    accept="image/*"
+    capture="environment"
+    id="fileInput"
+  >
+
+  <p id="result" style="margin-top:20px;font-size:18px;"></p>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 
   <script>
     const result = document.getElementById("result");
-    const html5Qrcode = new Html5Qrcode("reader");
+    const input = document.getElementById("fileInput");
 
-    function startScan() {
-      html5Qrcode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-          result.innerHTML = "بارکد اسکن شد: " + decodedText;
-          html5Qrcode.stop();
-        },
-        (error) => {}
-      ).catch(err => {
-        result.innerHTML = "❌ دسترسی به دوربین داده نشد";
-      });
-    }
+    const html5QrCode = new Html5Qrcode("reader-temp");
+
+    input.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      result.innerText = "در حال پردازش تصویر...";
+
+      try {
+        const decodedText = await html5QrCode.scanFile(file, true);
+        result.innerText = "بارکد اسکن شد: " + decodedText;
+      } catch (err) {
+        result.innerText = "❌ بارکد در تصویر شناسایی نشد";
+      }
+    });
   </script>
 
 </body>
