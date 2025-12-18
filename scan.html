@@ -1,23 +1,71 @@
-<script>
-let scannedBarcodes = JSON.parse(localStorage.getItem("barcodes")) || [];
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اسکن بارکد</title>
 
-function showBarcodes() {
-    const list = document.getElementById("barcodeList");
-    list.innerHTML = "";
-    scannedBarcodes.forEach((code, index) => {
-        const li = document.createElement("li");
-        li.textContent = (index + 1) + " - " + code;
-        list.appendChild(li);
-    });
-}
+    <!-- کتابخانه اسکن بارکد -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 
-// بعد از اسکن
-function onScanSuccess(decodedText) {
-    scannedBarcodes.push(decodedText);
-    localStorage.setItem("barcodes", JSON.stringify(scannedBarcodes));
-    showBarcodes();
-}
+    <style>
+        body {
+            font-family: sans-serif;
+            direction: rtl;
+            text-align: center;
+            padding: 20px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+        }
+        ul {
+            text-align: right;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
 
-// نمایش لیست قبلی بعد از رفرش
-window.onload = showBarcodes;
-</script>
+<body>
+
+    <h2>اسکن بارکد</h2>
+    <p>برای اسکن، دوربین را روی بارکد بگیرید</p>
+
+    <div id="reader"></div>
+
+    <h3>لیست بارکدهای اسکن‌شده</h3>
+    <ul id="barcodeList"></ul>
+
+    <script>
+        let scannedBarcodes = JSON.parse(localStorage.getItem("barcodes")) || [];
+
+        function showBarcodes() {
+            const list = document.getElementById("barcodeList");
+            list.innerHTML = "";
+            scannedBarcodes.forEach((code, index) => {
+                const li = document.createElement("li");
+                li.textContent = (index + 1) + " - " + code;
+                list.appendChild(li);
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            scannedBarcodes.push(decodedText);
+            localStorage.setItem("barcodes", JSON.stringify(scannedBarcodes));
+            showBarcodes();
+        }
+
+        const html5QrcodeScanner = new Html5Qrcode("reader");
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 250 },
+            onScanSuccess
+        );
+
+        window.onload = showBarcodes;
+    </script>
+
+</body>
+</html>
