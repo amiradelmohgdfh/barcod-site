@@ -7,32 +7,34 @@
 </head>
 <body style="text-align:center;font-family:tahoma">
 
-  <h2>دوربین را روی بارکد بگیرید</h2>
+  <h2>اسکن بارکد</h2>
 
-  <div id="reader" style="width:300px;margin:auto;"></div>
+  <button onclick="startScan()" style="font-size:18px;padding:10px 20px;">
+    شروع اسکن
+  </button>
+
+  <div id="reader" style="width:300px;margin:20px auto;"></div>
   <p id="result"></p>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 
   <script>
     const result = document.getElementById("result");
-
     const html5Qrcode = new Html5Qrcode("reader");
 
-    html5Qrcode.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250
-      },
-      (decodedText) => {
-        result.innerHTML = "بارکد اسکن شد: " + decodedText;
-        html5Qrcode.stop();
-      },
-      (error) => {}
-    ).catch(err => {
-      result.innerHTML = "خطا در دسترسی به دوربین";
-    });
+    function startScan() {
+      html5Qrcode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+          result.innerHTML = "بارکد اسکن شد: " + decodedText;
+          html5Qrcode.stop();
+        },
+        (error) => {}
+      ).catch(err => {
+        result.innerHTML = "❌ دسترسی به دوربین داده نشد";
+      });
+    }
   </script>
 
 </body>
