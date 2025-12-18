@@ -1,85 +1,23 @@
-<!DOCTYPE html>
-<html lang="fa">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اسکن بارکد</title>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
-    <style>
-        body {
-            font-family: sans-serif;
-            direction: rtl;
-            text-align: center;
-            padding: 20px;
-        }
-        #reader {
-            width: 100%;
-            max-width: 400px;
-            margin: auto;
-        }
-        ul {
-            text-align: right;
-            max-width: 400px;
-            margin: 20px auto;
-        }
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h2>اسکن بارکد</h2>
-    <p>برای اسکن، دوربین را روی بارکد بگیرید</p>
-    <div id="reader"></div>
-    <h3>لیست بارکدهای اسکن‌شده</h3>
-    <ul id="barcodeList"></ul>
-    <button onclick="clearBarcodes()">پاک کردن لیست</button>
+<script>
+let scannedBarcodes = JSON.parse(localStorage.getItem("barcodes")) || [];
 
-    <script>
-        let scannedBarcodes = JSON.parse(localStorage.getItem("barcodes")) || [];
+function showBarcodes() {
+    const list = document.getElementById("barcodeList");
+    list.innerHTML = "";
+    scannedBarcodes.forEach((code, index) => {
+        const li = document.createElement("li");
+        li.textContent = (index + 1) + " - " + code;
+        list.appendChild(li);
+    });
+}
 
-        function showBarcodes() {
-            const list = document.getElementById("barcodeList");
-            list.innerHTML = "";
-            scannedBarcodes.forEach((code, index) => {
-                const li = document.createElement("li");
-                li.textContent = (index + 1) + " - " + code;
-                list.appendChild(li);
-            });
-        }
+// بعد از اسکن
+function onScanSuccess(decodedText) {
+    scannedBarcodes.push(decodedText);
+    localStorage.setItem("barcodes", JSON.stringify(scannedBarcodes));
+    showBarcodes();
+}
 
-        function onScanSuccess(decodedText) {
-            if (!scannedBarcodes.includes(decodedText)) {
-                scannedBarcodes.push(decodedText);
-                localStorage.setItem("barcodes", JSON.stringify(scannedBarcodes));
-                showBarcodes();
-            }
-            // آماده اسکن بعدی
-            html5QrcodeScanner.clear().then(() => {
-                startScanner();
-            }).catch(err => console.error(err));
-        }
-
-        function startScanner() {
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                onScanSuccess
-            ).catch(err => console.error("دوربین فعال نشد:", err));
-        }
-
-        function clearBarcodes() {
-            scannedBarcodes = [];
-            localStorage.removeItem("barcodes");
-            showBarcodes();
-        }
-
-        const html5QrcodeScanner = new Html5Qrcode("reader");
-        window.onload = () => {
-            showBarcodes();
-            startScanner();
-        };
-    </script>
-</body>
-</html>
+// نمایش لیست قبلی بعد از رفرش
+window.onload = showBarcodes;
+</script>
