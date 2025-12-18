@@ -1,37 +1,39 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa">
 <head>
-    <meta charset="UTF-8">
-    <title>اسکن بارکد</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  <meta charset="UTF-8">
+  <title>اسکن بارکد</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body style="text-align:center;font-family:tahoma">
 
-<h3>اسکن بارکد</h3>
+  <h2>دوربین را روی بارکد بگیرید</h2>
 
-<div id="reader" style="width:300px"></div>
+  <div id="reader" style="width:300px;margin:auto;"></div>
+  <p id="result"></p>
 
-<p>کد اسکن شده:</p>
-<input type="text" id="result" readonly>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 
-<script>
-    const scanner = new Html5Qrcode("reader");
+  <script>
+    const result = document.getElementById("result");
 
-    Html5Qrcode.getCameras().then(cameras => {
-        if (cameras.length > 0) {
-            scanner.start(
-                cameras[0].id,
-                { fps: 10, qrbox: 250 },
-                text => {
-                    document.getElementById("result").value = text;
-                    scanner.stop();
-                }
-            );
-        }
+    const html5Qrcode = new Html5Qrcode("reader");
+
+    html5Qrcode.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: 250
+      },
+      (decodedText) => {
+        result.innerHTML = "بارکد اسکن شد: " + decodedText;
+        html5Qrcode.stop();
+      },
+      (error) => {}
+    ).catch(err => {
+      result.innerHTML = "خطا در دسترسی به دوربین";
     });
-</script>
+  </script>
 
 </body>
 </html>
