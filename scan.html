@@ -5,6 +5,9 @@
   <title>اسکن بارکد</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- کتابخانه اسکن بارکد از روی عکس -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -22,10 +25,13 @@
     }
     ul {
       margin-top: 20px;
-      max-width: 400px;
+      max-width: 420px;
       margin-left: auto;
       margin-right: auto;
       text-align: right;
+    }
+    li {
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -33,12 +39,10 @@
 <body>
 
 <h2>اسکن بارکد</h2>
-<p>دکمه را بزنید، عکس بگیرید، بارکد ذخیره می‌شود</p>
+<p>دکمه را بزن، عکس بگیر، بارکد ذخیره می‌شود</p>
 
-<!-- دکمه واقعی -->
 <button onclick="openCamera()">📷 گرفتن عکس</button>
 
-<!-- ورودی مخفی -->
 <input
   type="file"
   id="cameraInput"
@@ -46,8 +50,11 @@
   capture="environment"
 />
 
-<h3>لیست اسکن‌ها</h3>
+<h3>لیست بارکدهای اسکن‌شده</h3>
 <ul id="list"></ul>
+
+<!-- div مخفی برای اسکن -->
+<div id="scanner" style="display:none;"></div>
 
 <script>
   const input = document.getElementById("cameraInput");
@@ -59,7 +66,7 @@
     list.innerHTML = "";
     saved.forEach((item, i) => {
       const li = document.createElement("li");
-      li.textContent = (i + 1) + " - " + item;
+      li.textContent = (i + 1) + " - " + item.code + " ⏱ " + item.time;
       list.appendChild(li);
     });
   }
@@ -68,14 +75,35 @@
     input.click();
   }
 
-  input.addEventListener("change", () => {
+  input.addEventListener("change", async () => {
     if (!input.files[0]) return;
 
-    // فعلاً فقط ثبت عکس (مرحله بعد اسکن واقعی اضافه می‌شود)
-    const time = new Date().toLocaleString();
-    saved.push("عکس ثبت شد - " + time);
-    localStorage.setItem("barcodes", JSON.stringify(saved));
-    show();
+    const file = input.files[0];
+    const qr = new Html5Qrcode("scanner");
+
+    try {
+      const decodedText = await qr.scanFile(file, true);
+
+      // جلوگیری از ثبت تکراری
+      if (saved.some(b => b.code === decodedText)) {
+        alert("این بارکد قبلاً ثبت شده");
+        return;
+      }
+
+      const record = {
+        code: decodedText,
+        time: new Date().toLocaleString()
+      };
+
+      saved.push(record);
+      localStorage.setItem("barcodes", JSON.stringify(saved));
+      show();
+
+      alert("✅ بارکد با موفقیت خوانده شد");
+
+    } catch (e) {
+      alert("❌ بارکدی در تصویر پیدا نشد");
+    }
   });
 
   show();
