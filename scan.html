@@ -5,8 +5,8 @@
   <title>اسکن بارکد</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- کتابخانه اسکن بارکد از روی عکس -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  <!-- ZXing -->
+  <script src="https://unpkg.com/@zxing/library@0.20.0"></script>
 
   <style>
     body {
@@ -53,9 +53,6 @@
 <h3>لیست بارکدهای اسکن‌شده</h3>
 <ul id="list"></ul>
 
-<!-- div مخفی برای اسکن -->
-<div id="scanner" style="display:none;"></div>
-
 <script>
   const input = document.getElementById("cameraInput");
   const list = document.getElementById("list");
@@ -66,7 +63,8 @@
     list.innerHTML = "";
     saved.forEach((item, i) => {
       const li = document.createElement("li");
-      li.textContent = (i + 1) + " - " + item.code + " ⏱ " + item.time;
+      li.textContent =
+        (i + 1) + " - " + item.code + " ⏱ " + item.time;
       list.appendChild(li);
     });
   }
@@ -76,34 +74,50 @@
   }
 
   input.addEventListener("change", async () => {
-    if (!input.files[0]) return;
-
     const file = input.files[0];
-    const qr = new Html5Qrcode("scanner");
+    if (!file) return;
 
-    try {
-      const decodedText = await qr.scanFile(file, true);
+    const reader = new FileReader();
 
-      // جلوگیری از ثبت تکراری
-      if (saved.some(b => b.code === decodedText)) {
-        alert("این بارکد قبلاً ثبت شده");
-        return;
+    reader.onload = async () => {
+      try {
+        const img = new Image();
+        img.src = reader.result;
+
+        img.onload = () => {
+          const codeReader = new ZXing.BrowserBarcodeReader();
+
+          codeReader.decodeFromImage(img)
+            .then(result => {
+              const code = result.text;
+
+              // جلوگیری از تکراری
+              if (saved.some(b => b.code === code)) {
+                alert("❌ این بارکد قبلاً ثبت شده");
+                return;
+              }
+
+              const record = {
+                code: code,
+                time: new Date().toLocaleString()
+              };
+
+              saved.push(record);
+              localStorage.setItem("barcodes", JSON.stringify(saved));
+              show();
+
+              alert("✅ بارکد با موفقیت ذخیره شد");
+            })
+            .catch(() => {
+              alert("❌ بارکدی در تصویر پیدا نشد");
+            });
+        };
+      } catch (e) {
+        alert("❌ خطا در پردازش تصویر");
       }
+    };
 
-      const record = {
-        code: decodedText,
-        time: new Date().toLocaleString()
-      };
-
-      saved.push(record);
-      localStorage.setItem("barcodes", JSON.stringify(saved));
-      show();
-
-      alert("✅ بارکد با موفقیت خوانده شد");
-
-    } catch (e) {
-      alert("❌ بارکدی در تصویر پیدا نشد");
-    }
+    reader.readAsDataURL(file);
   });
 
   show();
